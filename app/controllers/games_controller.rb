@@ -2,14 +2,17 @@ require 'open-uri'
 require 'json'
 
 class GamesController < ApplicationController
-  before_action :set_letters, only: [:new]
+  VOWELS = %w(A E I O U)
 
   def new
-    set_letters
+    @letters = Array.new(5) { VOWELS.sample }
+    @letters += Array.new(5) { (('A'..'Z').to_a - VOWELS).sample }
+    @letters.shuffle!
   end
 
   def score
-    @word = params[:word].upcase
+    @word = (params[:word] || "").upcase
+    @letters = params[:letters].split
     @display_message = if check_letters?(@word, @letters)
       "Sorry but #{@word} can't be built out of #{@letters.join}."
     elsif real_word?(@word) 
@@ -32,10 +35,5 @@ class GamesController < ApplicationController
     url = "https://wagon-dictionary.herokuapp.com/#{word}"
     word_serialized = URI.open(url).read
     JSON.parse(word_serialized)["found"]
-  end
-
-  def set_letters
-    albhabet = ("A".."Z").to_a
-    @letters ||= Array.new(10) { albhabet.sample } 
   end
 end
